@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoltBite - Bolt Torque and Clamp Load</title>
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#ecedef; color:#1d2127; line-height:1.5; }
+  .wrap { max-width:800px; margin:0 auto; padding:24px 16px 60px; }
+  h1 { font-size:27px; } h1 span { color:#d35400; }
+  .sub { color:#5d6672; margin:4px 0 18px; font-size:14px; }
+  .card { background:#fff; border:1px solid #d6d9de; border-radius:14px; padding:16px; margin-bottom:16px; }
+  h2 { font-size:15px; margin-bottom:10px; }
+  .presets button { background:#e3e6ea; color:#2a3139; border:0; border-radius:8px; padding:8px 12px; cursor:pointer; font-size:13px; margin:0 6px 6px 0; }
+  .presets button:hover { background:#d5d9df; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  label { font-size:12px; color:#5d6672; display:block; margin-bottom:3px; }
+  input, select { width:100%; padding:8px; border:1px solid #c7ccd3; border-radius:8px; font-size:14px; background:#fafbfc; color:#1d2127; }
+  .out { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; }
+  .m { background:#f3f4f6; border-radius:12px; padding:12px; }
+  .m .k { font-size:11px; text-transform:uppercase; letter-spacing:.5px; color:#5d6672; }
+  .m .v { font-size:28px; font-weight:800; margin:2px 0; } .m .s { font-size:12px; color:#5d6672; }
+  .ok{color:#1e8449;} .high{color:#b9770e;} .over{color:#c0392b;}
+  table { width:100%; border-collapse:collapse; font-size:13px; } td, th { padding:5px 6px; text-align:right; border-bottom:1px solid #e6e8eb; } th { color:#5d6672; font-size:11px; text-transform:uppercase; } td:first-child, th:first-child { text-align:left; }
+  tr.sel td { background:#fdebd0; font-weight:700; }
+  .bar { height:14px; background:#e3e6ea; border-radius:7px; position:relative; margin:10px 0 4px; overflow:hidden; } .bar i { display:block; height:100%; background:#1e8449; } .bar b { position:absolute; top:0; bottom:0; width:2px; background:#1d2127; }
+  .note { font-size:12px; color:#5d6672; margin-top:10px; } a { color:#d35400; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Bolt<span>Bite</span></h1>
+  <div class="sub">Tighten to the right number. Get the torque for a metric bolt, the clamp load it makes, and what a torque wrench setting really does.</div>
+
+  <div class="card"><h2>Start from a job</h2><div class="presets" id="presets"></div></div>
+
+  <div class="card">
+    <h2>The bolt</h2>
+    <div class="grid">
+      <div><label>Size (metric coarse)</label><select id="d"></select></div>
+      <div><label>Strength class (marked on the head)</label><select id="cls"></select></div>
+      <div><label>Thread condition</label><select id="fin"></select></div>
+      <div><label>Preload: <span id="pv">75</span>% of proof load</label><input type="range" id="pre" min="40" max="90" value="75"></div>
+    </div>
+    <div class="out" id="out" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>What does my torque wrench setting do?</h2>
+    <div class="grid" style="margin-bottom:10px"><div><label>Torque I applied (N&middot;m)</label><input type="number" id="tq" min="0" value="40"></div></div>
+    <div class="bar" id="bar"><i id="bi"></i><b id="bp"></b></div>
+    <div class="note" id="rtxt"></div>
+  </div>
+
+  <div class="card">
+    <h2>Torque chart for this class and thread condition</h2>
+    <table id="tbl"></table>
+  </div>
+
+  <div class="note">
+    T = K &times; d &times; F. Clamp load F is a share of the bolt's proof load (default 75%). Strengths and stress areas from ISO 898-1 (class 8.8 proof stress is 580 MPa up to M16, 600 MPa above). K (nut factor) is an estimate: 0.20 dry, 0.15 lubricated, 0.13 zinc flake coating. Real K varies a lot with finish, washers and thread condition, so the same torque can give 25% more or less clamp load. Torque only indirectly measures tension. Torque numbers need a nut or tapped hole as strong as the bolt. For critical or safety joints (wheels, brakes, pressure parts, structure) use the manufacturer's torque spec.
+    Source: <a href="https://crafter.fastenal.com/static-assets/pdfs/technical-resources/Torque-Tension-Relationship-for-Metric-Fasteners-Property-Class-4.6-8.8-10.9-12.9.pdf">Fastenal torque-tension table, ISO 898-1</a>
+  </div>
+</div>
+<script src="engine.js"></script>
+<script>
+(function(){
+  var E = BoltBite, $ = function(i){ return document.getElementById(i); };
+  E.SIZES.forEach(function(s){ var o = document.createElement('option'); o.value = s.d; o.textContent = 'M'+s.d+' x '+s.p; $('d').appendChild(o); });
+  Object.keys(E.CLASSES).forEach(function(k){ var o = document.createElement('option'); o.value = k; o.textContent = k; $('cls').appendChild(o); });
+  Object.keys(E.FINISH).forEach(function(k){ var o = document.createElement('option'); o.value = k; o.textContent = E.FINISH[k].name+' (K '+E.FINISH[k].K.toFixed(2)+')'; $('fin').appendChild(o); });
+  $('d').value = 10; $('cls').value = '8.8'; $('fin').value = 'dry';
+  function card(k, v, s, c){ return '<div class="m"><div class="k">'+k+'</div><div class="v '+(c||'')+'">'+v+'</div><div class="s">'+s+'</div></div>'; }
+  function f1(x){ return x >= 100 ? x.toFixed(0) : x >= 10 ? x.toFixed(1) : x.toFixed(2); }
+  function update(){
+    var d = +$('d').value, cls = $('cls').value, fin = $('fin').value, frac = +$('pre').value/100; $('pv').textContent = Math.round(frac*100);
+    var s = E.spec(d, cls, fin, frac);
+    $('out').innerHTML = card('Tightening torque', f1(s.torqueNm)+' N\u00b7m', f1(s.torqueFtLb)+' ft\u00b7lbf', E.status(frac)) + card('Clamp load', (s.clampN/1000).toFixed(1)+' kN', 'like '+Math.round(s.clampKgf)+' kg pressing the joint') +
+      card('Proof load', (s.proofN/1000).toFixed(1)+' kN', 'the bolt stays elastic up to here') + card('Breaking load', (s.tensileN/1000).toFixed(1)+' kN', 'minimum tensile, class '+cls);
+    var tq = +$('tq').value, r = E.reverse(tq, d, cls, fin);
+    var pct = r.fracProof*100, hi = r.highFracProof*100;
+    $('bi').style.width = Math.min(pct,130)/130*100+'%'; $('bi').style.background = pct > 100 ? '#c0392b' : pct > 80 ? '#b9770e' : '#1e8449'; $('bp').style.left = (100/130*100)+'%';
+    $('rtxt').textContent = tq > 0 ? tq+' N\u00b7m gives about '+(r.clampN/1000).toFixed(1)+' kN of clamp load ('+pct.toFixed(0)+'% of proof). With typical friction scatter it could be '+(r.lowN/1000).toFixed(1)+' to '+(r.highN/1000).toFixed(1)+' kN, up to '+hi.toFixed(0)+'% of proof.'+(pct > 100 ? ' Over proof: the bolt is likely to stretch permanently or break.' : hi > 100 ? ' With low friction this could reach proof load.' : '') : 'Enter the torque you applied.';
+    var rows = '<tr><th>Size</th><th>Torque N\u00b7m</th><th>ft\u00b7lbf</th><th>Clamp kN</th></tr>';
+    E.SIZES.forEach(function(z){ var x = E.spec(z.d, cls, fin, frac); rows += '<tr'+(z.d===d?' class="sel"':'')+'><td>M'+z.d+'</td><td>'+f1(x.torqueNm)+'</td><td>'+f1(x.torqueFtLb)+'</td><td>'+(x.clampN/1000).toFixed(1)+'</td></tr>'; });
+    $('tbl').innerHTML = rows;
+  }
+  var P = { 'M8 8.8 dry (general)':{d:8,cls:'8.8',fin:'dry',pre:75,tq:25}, 'M10 8.8 oiled':{d:10,cls:'8.8',fin:'lube',pre:75,tq:38}, 'M12 10.9 dry':{d:12,cls:'10.9',fin:'dry',pre:75,tq:126},
+    'M16 12.9 zinc flake':{d:16,cls:'12.9',fin:'flake',pre:75,tq:300}, 'Over-tightened M10':{d:10,cls:'8.8',fin:'dry',pre:75,tq:75} };
+  var pr = $('presets');
+  Object.keys(P).forEach(function(k){ var b = document.createElement('button'); b.textContent = k; b.onclick = function(){ var p = P[k]; $('d').value = p.d; $('cls').value = p.cls; $('fin').value = p.fin; $('pre').value = p.pre; $('tq').value = p.tq; update(); }; pr.appendChild(b); });
+  ['d','cls','fin','pre','tq'].forEach(function(i){ $(i).oninput = update; $(i).onchange = update; });
+  update();
+})();
+</script>
+</body>
+</html>
