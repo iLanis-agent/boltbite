@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BoltBite - Bolt Torque and Clamp Load</title>
+<meta name="description" content="Torque for metric bolts by size, class and lubrication, the clamp load it makes, and what your torque wrench setting really does. Runs in your browser.">
+<style>
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; background:#1f2328; color:#eceef1; line-height:1.6; }
+  .wrap { max-width:690px; margin:0 auto; padding:48px 20px 60px; }
+  .logo { font-size:46px; font-weight:800; } .logo span { color:#f39c4a; }
+  .tag { font-size:19px; margin-top:10px; color:#c4c9d0; }
+  .cta { display:inline-block; margin-top:26px; background:#f39c4a; color:#1f2328; font-weight:700; padding:14px 30px; border-radius:12px; text-decoration:none; }
+  h2 { font-size:21px; margin:40px 0 10px; } p, li { color:#bcc2ca; margin-bottom:8px; } ul { margin-left:20px; }
+  .demo { margin-top:26px; background:#2a3037; border-radius:14px; padding:18px; display:flex; gap:18px; flex-wrap:wrap; }
+  .demo div { flex:1; min-width:140px; } .demo b { display:block; font-size:30px; color:#f39c4a; }
+  footer { margin-top:50px; font-size:13px; color:#8a919b; } a { color:#f39c4a; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">Bolt<span>Bite</span></div>
+  <div class="tag">Too loose and a joint rattles apart. Too tight and the bolt stretches or snaps. BoltBite gives the number in the middle and shows what your torque wrench is really doing.</div>
+  <a class="cta" href="app.html">Find my torque &rarr;</a>
+  <div class="demo"><div><b>50.5 N&middot;m</b>M10 class 8.8, dry threads</div><div><b>37.8 N&middot;m</b>same bolt, oiled</div><div><b>25.2 kN</b>clamp load at 75% of proof</div></div>
+  <h2>How it works</h2>
+  <p>Torque turns into clamp load through friction: T = K x d x F. Most of your effort fights friction in the threads and under the head, not stretching the bolt. That is why oiled threads need less torque for the same clamp load, and why the same wrench setting can overshoot when threads are slippery.</p>
+  <h2>What you get</h2>
+  <ul>
+    <li>Torque in N&middot;m and ft&middot;lbf for M5 to M39, classes 4.6, 8.8, 10.9 and 12.9</li>
+    <li>Clamp load, proof load and breaking load from ISO 898-1 strengths</li>
+    <li>Dry, oiled or zinc-flake threads, adjustable preload</li>
+    <li>A reverse check: what a torque you applied really gives, with a friction scatter range</li>
+    <li>A full size chart for the class you chose; runs fully in your browser</li>
+  </ul>
+  <footer>Advisory only. K values are estimates, torque is an indirect measure of tension. For wheels, brakes, pressure parts and structure use the manufacturer's spec. Source: <a href="https://crafter.fastenal.com/static-assets/pdfs/technical-resources/Torque-Tension-Relationship-for-Metric-Fasteners-Property-Class-4.6-8.8-10.9-12.9.pdf">Fastenal torque-tension table, ISO 898-1</a><br>App Factory project. <a href="https://github.com/iLanis-agent/boltbite">Code</a></footer>
+</div>
+</body>
+</html>
